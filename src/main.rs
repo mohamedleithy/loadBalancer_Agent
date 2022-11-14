@@ -39,8 +39,10 @@ fn main() -> std::io::Result<()>{
             // let mut n = rng.gen_range(0, ipAddresses.len());
             let clientToAgentMsg = "ClienToAgentMsg::";
 
-        let socket = UdpSocket::bind("10.40.44.255:2020").unwrap();
+        let socket = UdpSocket::bind("10.65.192.126:2020").unwrap();
             loop {
+
+
 
                 let mut buf = [0; 30]; // buffer for recieving 
 
@@ -51,9 +53,13 @@ fn main() -> std::io::Result<()>{
                 let (amt, src) = socket.recv_from(&mut buf).unwrap();
 
                 thread::sleep(std::time::Duration::from_millis(1000));
+
+                //appending the client ip to the message
+                let mut buf1 = src.to_string().into_bytes();
+                buf1.append(&mut buf.to_vec());
                 
                 // send to servers in a round robin fashion 
-                socket.send_to(&buf, "10.40.44.255:2023").unwrap();
+                socket.send_to(&buf1, "10.65.192.126:2023").unwrap();
                 println!("{} Forwarded message from client to server", clientToAgentMsg);
 
                 // move to next in order 
@@ -69,11 +75,11 @@ fn main() -> std::io::Result<()>{
             // receive on send port + 1 (2021)
 
             let handler1 = thread::spawn(move || {
-                let socket = UdpSocket::bind("10.40.44.255:2021").unwrap();
+                let socket = UdpSocket::bind("10.65.192.126:2021").unwrap();
                 let agentToClientMsg = "AgentToClientMsg::";  
                 loop {
                         
-                        let mut buf = [0; 30]; // buffer for recieving 
+                        let mut buf = [0; 60]; // buffer for recieving 
 
                         // blocked till Recieving a message from any of the other servers 
 
@@ -82,17 +88,41 @@ fn main() -> std::io::Result<()>{
                         println!("{} Message Recieved!", agentToClientMsg);
 
 
+                        // // concatenate src to buf
+                        // let mut buf1 = [0; 30];
+                        // let mut buf2 = [0; 30];
+                        // buf1.copy_from_slice(&buf);
+                        // buf2.copy_from_slice(&src.to_string().into_bytes());
+                        // buf1.append(&mut buf2);
+
+                        // // extract src from buf1
+                        // let mut buf3 = [0; 30];
+                        // let mut buf4 = [0; 30];
+                        // buf3.copy_from_slice(&buf1[0..30]);
+                        // buf4.copy_from_slice(&buf1[30..60]);
+
+                        // extract src from buf1
+                        let mut src1 = [0; 30];
+                        src1.copy_from_slice(&buf[30..60]);
+                        src1.reverse();
+                        let src1 = String::from_utf8((&src1).to_vec()).unwrap();
+                        let src1 = src1.trim_matches(char::from(0));
+                        println!("client ip: {}", src1);
+
+
+                        thread::sleep(std::time::Duration::from_millis(1000));
+                        //convert src1 To Socket Address
+                        let src1 = src1.parse::<std::net::SocketAddr>().unwrap();
+
+                        // send to client
+                        socket.send_to(&buf[0..30], src1).unwrap();
+
                         // TODO 
-
                         /*Requires engineering how to get the ip address of the client*/
-
-                        socket.send_to(&buf, "10.40.44.255:2022").unwrap();
-
-
-                        println!("{}From: {:?}", agentToClientMsg, src);
+                        println!("{}From: {:?}", agentToClientMsg, src1);
                         //print the received data as a string 
 
-                        println!("Message: {}", String::from_utf8_lossy(&buf));
+                        println!("Message: {}", String::from_utf8_lossy(&buf[0..30]));
                  
                     }
                         
