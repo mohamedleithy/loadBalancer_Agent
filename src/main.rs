@@ -88,18 +88,6 @@ fn main() -> std::io::Result<()>{
                         println!("{} Message Recieved!", agentToClientMsg);
 
 
-                        // // concatenate src to buf
-                        // let mut buf1 = [0; 30];
-                        // let mut buf2 = [0; 30];
-                        // buf1.copy_from_slice(&buf);
-                        // buf2.copy_from_slice(&src.to_string().into_bytes());
-                        // buf1.append(&mut buf2);
-
-                        // // extract src from buf1
-                        // let mut buf3 = [0; 30];
-                        // let mut buf4 = [0; 30];
-                        // buf3.copy_from_slice(&buf1[0..30]);
-                        // buf4.copy_from_slice(&buf1[30..60]);
 
                         // extract src from buf1
                         let mut src1 = [0; 30];
