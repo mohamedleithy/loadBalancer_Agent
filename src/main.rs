@@ -5,6 +5,7 @@ use std::fs::File;
 use std::thread;
 use std::time::Duration;
 use rand::Rng;
+extern crate local_ip;
 
 use std::io::{prelude::*, BufReader};
 use std::path::Path;
@@ -24,12 +25,11 @@ fn main() -> std::io::Result<()>{
         
        
 
-       
+        let ip = local_ip::get().unwrap();
 
         // thread to initiate requests to servers, upon recieving a request from clients 
         // Reserve port 2020 for agent on the machine
         let handler = thread::spawn(move || {
-            
         // Load Ip Addresses of Servers from configuration file 
         // The random generator is to randomize the starting node of each agent as not to initiate load from all agents to the first server
         // ex: Agent 1: 0 1 2 Agent 2: 2 0 1 Agent 3: 1 2 0 
@@ -39,7 +39,7 @@ fn main() -> std::io::Result<()>{
             // let mut n = rng.gen_range(0, ipAddresses.len());
             let clientToAgentMsg = "ClienToAgentMsg::";
 
-        let socket = UdpSocket::bind("10.65.192.126:2020").unwrap();
+        let socket = UdpSocket::bind(ip.to_string() + ":2020").unwrap();
             loop {
 
 
@@ -59,7 +59,7 @@ fn main() -> std::io::Result<()>{
                 buf1.append(&mut buf.to_vec());
                 
                 // send to servers in a round robin fashion 
-                socket.send_to(&buf1, "10.65.192.126:2023").unwrap();
+                socket.send_to(&buf1, "192.168.1.3:2023").unwrap();
                 println!("{} Forwarded message from client to server", clientToAgentMsg);
 
                 // move to next in order 
@@ -75,7 +75,7 @@ fn main() -> std::io::Result<()>{
             // receive on send port + 1 (2021)
 
             let handler1 = thread::spawn(move || {
-                let socket = UdpSocket::bind("10.65.192.126:2021").unwrap();
+                let socket = UdpSocket::bind(ip.to_string() +":2021").unwrap();
                 let agentToClientMsg = "AgentToClientMsg::";  
                 loop {
                         
