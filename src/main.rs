@@ -36,7 +36,7 @@ fn main() -> std::io::Result<()>{
 
         // maintaing server info to send to servers and mark down servers 
 
-        let temp_servers: [server; 3] = [server { ip: ip.to_string(), state: true, temperature: 100}, server { ip: "172.20.10.6".to_string(), state: true, temperature: 100 }, server { ip: "172.20.10.3".to_string(), state: true, temperature: 100},];
+        let temp_servers: [server; 3] = [server { ip: ip.to_string(), state: true, temperature: 100}, server { ip: "172.20.10.4".to_string(), state: true, temperature: 100 }, server { ip: "172.20.10.3".to_string(), state: true, temperature: 100},];
         
         let server_info = Arc::new(Mutex::new(temp_servers));
         // thread to initiate requests to servers, upon recieving a request from clients 
@@ -52,6 +52,8 @@ fn main() -> std::io::Result<()>{
             // let ipAddresses= loadIpAddresses("/home/g02-f22/Desktop/loadBalancer_Agent/config.txt");
             // let mut rng = rand::thread_rng();
             // let mut n = rng.gen_range(0, ipAddresses.len());
+
+
             let clientToAgentMsg = "ClienToAgentMsg::";
 
         
@@ -84,6 +86,8 @@ fn main() -> std::io::Result<()>{
                 // send to servers in a round robin fashion TODO: USE N 
 
                 // check if N is not down otherwise, send to N+1 
+
+
                 socket.send_to(&buf1, "192.168.1.3:2023").unwrap();
                 println!("{} Forwarded message from client to server", clientToAgentMsg);
 
@@ -147,6 +151,7 @@ fn main() -> std::io::Result<()>{
 
             // receive on send port + 2 (2022)
 
+            let server_info_2 = Arc::clone(&server_info);
             let handler2 = thread::spawn(move || {
                 let socket = UdpSocket::bind(ip.to_string() +":2022").unwrap();
                 let serverToAgentMsg = "ServerToAgentMsg::";  
@@ -154,13 +159,37 @@ fn main() -> std::io::Result<()>{
                         let mut buf = [0; 60]; // buffer for recieving 
 
                         // blocked till Recieving a message from any of the other servers 
-
+                        let mut server_info_22 = server_info_2.lock().unwrap();
                         // recieve from server 
                         let (_, src) = socket.recv_from(&mut buf).unwrap();
-                        println!("{} server with ip: {} is down!", serverToAgentMsg, src);
+
+                        let src1 = src.ip().to_string(); 
+                        let src1: Vec<&str> = src1.split(":").collect(); 
+                        let src1 = src1[0]; 
+
+                        println!("{} server with ip: {} is down!", serverToAgentMsg, src1);
+
+                        let mut server_info_22 = server_info_2.lock().unwrap();
+
+                        for server in serverInfo22.iter_mut(){
+                            if src1.to_string() == (server.ip.to_string())  {  
+
+                                server_info_22.state = false; 
+                            } else{
+
+                                server_info_22.state = true; 
+                            }
+
+                        }
+
+                        std::mem::drop(server_info_22); 
 
 
                         // TODO: MARK THIS SERVER AS DOWN OR UP AS PER THE MESSAGE
+
+
+
+
             
                     }
                         
@@ -190,12 +219,14 @@ let handler3 = thread::spawn(move || {
             
 
 
-            // TODO: MARK THIS SERVER AS DOWN OR UP AS PER THE MESSAGE
+
 
         }
             
     });
 
+
+  
 
 
         handler.join().unwrap();
