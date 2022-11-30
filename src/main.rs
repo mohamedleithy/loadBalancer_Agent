@@ -36,7 +36,7 @@ fn main() -> std::io::Result<()>{
 
         // maintaing server info to send to servers and mark down servers 
 
-        let temp_servers: [server; 3] = [server { ip: ip.to_string(), state: true, temperature: 100}, server { ip: "192.168.8.106".to_string(), state: true, temperature: 100 }, server { ip: "192.168.8.106".to_string(), state: true, temperature: 100},];
+        let temp_servers: [server; 3] = [server { ip: ip.to_string(), state: true, temperature: 100}, server { ip: "192.168.8.118".to_string(), state: true, temperature: 100 }, server { ip: "192.168.8.120".to_string(), state: true, temperature: 100},];
         
         let server_info = Arc::new(Mutex::new(temp_servers));
         // thread to initiate requests to servers, upon recieving a request from clients 
@@ -199,7 +199,7 @@ fn main() -> std::io::Result<()>{
                         std::mem::drop(server_info_22); 
 
 
-                        // TODO: MARK THIS SERVER AS DOWN OR UP AS PER THE MESSAGE
+            
 
 
 
